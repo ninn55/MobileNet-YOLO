@@ -713,7 +713,7 @@ int main(int argc, char** argv) {
   //std::ifstream infile(argv[3]);
   //const string &indir = "//data//images";
   std::string file;
-  out << file_type <<"demo";
+  out << file_type << std::endl <<"demo" << std::endl;
   
   int max = 3000;
   vector<int> color;
@@ -875,6 +875,7 @@ int main(int argc, char** argv) {
 			  }
 			  CHECK(!img.empty()) << "Error when read frame";
 			  std::vector<vector<float> > detections = detector.Detect(img);
+			  out << sec(clock()) << std::endl;
 
 			  /* Print the detection results. */
 			  for (int i = 0; i < detections.size(); ++i) {
