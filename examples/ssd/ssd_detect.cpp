@@ -451,7 +451,13 @@ int main(int argc, char** argv) {
 
 	  for (size_t k = 0; k < 1; ++k)
 	  {
-		  cv::VideoCapture cap(0);
+		  //cv::VideoCapture cap(0);
+		  //Add GStreamer pipeline
+		  cv::VideoCapture cap("nvcamerasrc ! video/x-raw(memory:NVMM), width=(int)640, \
+              height=(int)360, format=(string)I420, framerate=(fraction)24/1 ! \
+              nvvidconv flip-method=0 ! video/x-raw, format=(string)I420 ! \
+              videoconvert ! video/x-raw, format=(string)BGR ! \
+              appsink");
 
 		  if (!cap.isOpened()) {
 			  LOG(FATAL) << "Failed to open camera";
