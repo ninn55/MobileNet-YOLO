@@ -32,6 +32,7 @@
 #include "caffe/util/benchmark.hpp"
 #define BOUND(a,min_val,max_val)           ( (a < min_val) ? min_val : (a >= max_val) ? (max_val) : a )
 //#define custom_class
+#define FRAME_DIFF
 #ifdef custom_class
 char* YOLO_CLASSES[2] = { "__background__", "pedestrian"};
 
@@ -861,14 +862,36 @@ int main(int argc, char** argv) {
               nvvidconv flip-method=0 ! video/x-raw, format=(string)I420 ! \
               videoconvert ! video/x-raw, format=(string)BGR ! \
               appsink");
+#ifdef FRAME_DIFF
+		  cv::VideoCapture capD("nvcamerasrc ! video/x-raw(memory:NVMM), width=(int)640, \
+		      height=(int)360,format=(string)I420, framerate=(fraction)24/1 ! \
+			  nvvidconv flip-method=2 ! video/x-raw, format=(string)BGRx ! videoconvert !\
+			  video/x-raw, format=(string)BGR ! appsink"); 
+#endif
 
 		  if (!cap.isOpened()) {
 			  LOG(FATAL) << "Failed to open camera";
 		  }
+#ifdef FRAME_DIFF
+		  if (!capD.isOpened()) {
+			  LOG(FATAL) << "Failed to open cameraD";
+		  }
+		  cv::Mat imgD;
+		  cv::Mat imgDL;
+		  bool success = capD.read(imgD);
+#endif
 		  cv::Mat img;
 		  int frame_count = 0;
 		  while (true) {
+#ifdef FRAME_DIFF
+		      imgDL = imgD.clone();
+			  bool success = capD.read(imgD);
+			  double min, max;
+			  cv::minMaxLoc(cv2::absdiff(imgD,imgDL);, &min, &max);
+			  if(max < 10) goto NODET;
+#endif
 			  bool success = cap.read(img);
+
 			  if (!success) {
 				  LOG(INFO) << "Process " << frame_count << " frames from " << file;
 				  break;
@@ -876,7 +899,7 @@ int main(int argc, char** argv) {
 			  CHECK(!img.empty()) << "Error when read frame";
 			  std::vector<vector<float> > detections = detector.Detect(img);
 			  out << sec(clock()) << std::endl;
-
+NODET:
 			  /* Print the detection results. */
 			  for (int i = 0; i < detections.size(); ++i) {
 				  const vector<float>& d = detections[i];
